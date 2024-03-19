@@ -9,7 +9,8 @@ let%expect_test _ =
   [%expect {|
     x + 10
     ==========
-    15 |}]
+    15
+    |}]
 ;;
 
 module M = struct
@@ -58,7 +59,8 @@ let%expect_test _ =
     let%map.M len = M.of_int 8 in
     String.sub long_string ~pos ~len |> fun x -> x
     ==========
-    contents |}]
+    contents
+    |}]
 ;;
 
 let%expect_test "demoing a module's structure" =
@@ -94,5 +96,6 @@ let%expect_test "demoing a module's structure" =
 
       let a = Foo
       let b = Bar
-    end |}]
+    end
+    |}]
 ;;
