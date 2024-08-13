@@ -6,7 +6,8 @@ let%expect_test _ =
   print_endline string;
   print_endline "==========";
   print_endline (Int.to_string value);
-  [%expect {|
+  [%expect
+    {|
     x + 10
     ==========
     15
@@ -65,18 +66,18 @@ let%expect_test _ =
 
 let%expect_test "demoing a module's structure" =
   let module Example =
-  [%demo
-  let x = 1
+    [%demo
+    let x = 1
 
-  module T = struct
-    type t =
-      | Foo
-      | Bar
-    [@@deriving sexp]
+    module T = struct
+      type t =
+        | Foo
+        | Bar
+      [@@deriving sexp]
 
-    let a = Foo
-    let b = Bar
-  end]
+      let a = Foo
+      let b = Bar
+    end]
   in
   let x = Example.x in
   let a = Example.T.a in
