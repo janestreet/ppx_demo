@@ -1,0 +1,79 @@
+open! Core
+
+let (_ : int) = [%demo_hoist 1 + 2 + 3]
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: [%demo_hoist must be bound to a named variable (e.g. let foo = [%demo_hoist ... ]).
+|}]
+
+let var_name = [%demo_hoist 1 + 2 + 3]
+let () = print_endline Ppx_demo_hoist.var_name
+
+[%%expect
+  {|
+1 + 2 + 3
+|}]
+
+let var_name = [%demo_hoist "i should fail"]
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: A variable with the name 'var_name' has already been hoisted. Please choose a different name for the variable, or add a unique name attribute to the ppx expression (e.g. [@name "unique_name"]).
+|}]
+
+(* Should not be the value above *)
+let () = print_endline Ppx_demo_hoist.var_name
+
+[%%expect
+  {|
+1 + 2 + 3
+|}]
+
+let var_name_2 = [%demo_hoist "I should pass since I'm a different name"]
+let () = print_endline Ppx_demo_hoist.var_name_2
+
+[%%expect
+  {|
+"I should pass since I'm a different name"
+|}]
+
+let%demo_hoist[@name "empty"] () = "I will exist because of the override"
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: This expression has type string but an expression was expected of type
+         unit
+|}]
+
+let () = print_endline Ppx_demo_hoist.empty
+
+[%%expect
+  {|
+"I will exist because of the override"
+|}]
+
+module%demo_hoist Foo = struct
+  let test = ()
+end
+
+let () = print_endline Ppx_demo_hoist.Foo.ppx_demo_string
+
+[%%expect
+  {|
+let test = ()
+|}]
+
+module%demo_hoist [@name "this_is_right"] _ = struct
+  let () = ()
+end
+
+let () = print_endline Ppx_demo_hoist.this_is_right
+
+[%%expect
+  {|
+let () = ()
+|}]
