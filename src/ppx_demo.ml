@@ -222,7 +222,7 @@ module Demo_hoist = struct
       | _ -> raise_no_binding_error ~loc:pvb_loc
   ;;
 
-  (* We shouldn't allow for extracting the code from function expressions. This is because 
+  (* We shouldn't allow for extracting the code from function expressions. This is because
      the text that is extracted is a bit unexpected
 
      Ex:
@@ -234,11 +234,11 @@ module Demo_hoist = struct
 
      module Ppx_demo_hoist = struct
        let foo = "a b = a + b"
-     end 
+     end
      ```
 
      Even if the user were to wrie this as [let%demo_hoist foo = fun a b -> a + b], [apply-style]
-     would correct the code to the version in the example above. Users should encapsulate the 
+     would correct the code to the version in the example above. Users should encapsulate the
      function they want to extract in a module binding if necessary
   *)
   let ensure_expression_is_not_function { pexp_desc; pexp_loc; _ } =
@@ -252,9 +252,9 @@ module Demo_hoist = struct
     | _ -> ()
   ;;
 
-  let register_let_binding_demo_strings ~loc ~rec_flag value_bindings =
-    match rec_flag, value_bindings with
-    | Nonrecursive, value_bindings ->
+  let register_let_binding_demo_strings ~loc ~mutable_flag ~rec_flag value_bindings =
+    match mutable_flag, rec_flag, value_bindings with
+    | Immutable, Nonrecursive, value_bindings ->
       List.iter value_bindings ~f:(fun value_binding ->
         ensure_expression_is_not_function value_binding.pvb_expr;
         let names = get_names_from_value_binding value_binding in
@@ -265,10 +265,15 @@ module Demo_hoist = struct
           create_demo_string ~loc
         in
         Hoister.register_demo_string ~names ~loc demo_string)
-    | Recursive, _ ->
+    | _, Recursive, _ ->
       Location.raise_errorf
         ~loc
         "let%s cannot be used on a recursive let binding."
+        "%demo_hoist"
+    | Mutable, _, _ ->
+      Location.raise_errorf
+        ~loc
+        "let%s cannot be used on a mutable let binding."
         "%demo_hoist"
   ;;
 
@@ -296,20 +301,25 @@ module Demo_hoist = struct
     fun ~loc ~ctxt -> function
     | Expression expression ->
       let expression = { expression with pexp_loc = ghost_loc expression.pexp_loc } in
-      let ( (* Matching here instead of in the branches so we don't have to rewrite the 
+      let ( (* Matching here instead of in the branches so we don't have to rewrite the
                exception raising code *) )
         =
         ensure_expression_is_not_function expression
       in
-      (match expression.pexp_desc with
+      (match
+         Ppxlib_jane.Shim.Expression_desc.of_parsetree
+           ~loc:expression.pexp_loc
+           expression.pexp_desc
+       with
        | Pexp_let
-           ( rec_flag
+           ( mutable_flag
+           , rec_flag
            , value_bindings
            , _expr
              (* The inner expr is ignored as it has no bearing on how this is parsed *) )
          ->
          (* Hoist each individual value binding. *)
-         register_let_binding_demo_strings ~loc ~rec_flag value_bindings;
+         register_let_binding_demo_strings ~loc ~mutable_flag ~rec_flag value_bindings;
          expression
        | Pexp_letmodule (module_name, module_expr, _expr) ->
          let hoisted_name = get_name_from_attributes ~loc expression.pexp_attributes in
@@ -378,7 +388,11 @@ module Demo_hoist = struct
          let () = Hoister.register_demo_string ~names ~loc string in
          structure_item
        | { pstr_desc = Pstr_value (rec_flag, value_bindings); pstr_loc; _ } ->
-         register_let_binding_demo_strings ~loc:pstr_loc ~rec_flag value_bindings;
+         register_let_binding_demo_strings
+           ~loc:pstr_loc
+           ~mutable_flag:Immutable
+           ~rec_flag
+           value_bindings;
          structure_item
        | { pstr_desc = Pstr_recmodule _; _ } ->
          Location.raise_errorf
