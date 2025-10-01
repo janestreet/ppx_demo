@@ -4,6 +4,7 @@ open Ast_builder.Default
 
 let ppx_name = "demo"
 let hoisted_ppx_name = "demo_hoist"
+let bonsai_docs_ppx_name = "demo_md"
 let ghost_loc loc = { loc with loc_ghost = true }
 
 let ghosted_extension_loc ctxt =
@@ -444,10 +445,11 @@ end
 let () =
   let register_hoister =
     Driver.Instrument.make ~position:Driver.Instrument.After (fun structure ->
+      let loc_here = { loc_start = [%here]; loc_end = [%here]; loc_ghost = true } in
       match Hoister.is_empty (), structure with
       | false, [] ->
         Location.raise_errorf
-          ~loc:{ loc_start = [%here]; loc_end = [%here]; loc_ghost = true }
+          ~loc:loc_here
           "BUG in ppx_demo, somehow generated side effects from empty file"
       | true, _ -> structure
       | false, first :: _ ->
