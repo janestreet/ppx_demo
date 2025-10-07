@@ -1,6 +1,6 @@
 (library
  (name ppx_demo_test)
  (public_name ppx_demo.test)
- (libraries core)
+ (libraries core expect_test_helpers_core ppxlib)
  (preprocess
-  (pps ppx_jane ppx_demo)))
+  (pps ppx_demo ppx_jane ppx_here)))

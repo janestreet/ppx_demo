@@ -1,0 +1,168 @@
+open! Core
+
+let () =
+  let module Test =
+    [%demo_hoist
+    let turbo = ()
+
+    module F = struct end]
+  in
+  Test.turbo
+;;
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: Module expression syntax is not supported by demo_hoist. Please use the [module%demo_hoist Foo = struct ... end] syntax.
+|}]
+
+module Simple_functor (M : sig
+    type t
+  end) =
+struct end
+
+module Test_functor = struct
+  include Simple_functor ([%demo_hoist type t = A])
+end
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: Module expression syntax is not supported by demo_hoist. Please use the [module%demo_hoist Foo = struct ... end] syntax.
+|}]
+
+(* Needs a name *)
+let () = [%demo_hoist ()]
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: [%demo_hoist must be bound to a named variable (e.g. let foo = [%demo_hoist ... ]).
+|}]
+
+(* Attr on the expression doesn't work *)
+let () = ([%demo_hoist ()] [@name "name"])
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: [%demo_hoist must be bound to a named variable (e.g. let foo = [%demo_hoist ... ]).
+|}]
+
+let () =
+  let%demo_hoist hey = "hey"
+  and () = () in
+  ()
+;;
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: This let%demo_hoist expression is bound to [unit]. Please add a name attr or give the variable a name.
+|}]
+
+(* No recursive bindings *)
+let%demo_hoist rec test () = "hi"
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: let%demo_hoist cannot be used on a recursive let binding.
+|}]
+
+module%demo_hoist rec F = struct end
+and X = struct end
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: %demo_hoist cannot be used with recursive modules
+|}]
+
+module%demo_hoist _ = struct end
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: Modules using %demo_hoist must be bound to a name (e.g. module%demo_hoist Foo = ...) or provide a name attribute (e.g. [@name "Foo"]).
+|}]
+
+module%demo_hoist [@name "this name is bad"] _ = struct end
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: Ppx_demo_hoist received a name attribute with value 'this name is bad', which is not a valid OCaml identifier. Please choose a different name.
+|}]
+
+let%demo_hoist _ = ()
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: This let%demo_hoist expression's pattern is [_]. Please add a name attr or give the variable a name.
+|}]
+
+let () = [%demo_hoist () [@name "empty"]]
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: [@name] attribute not allowed when using [%demo_hoist ...] syntax
+|}]
+
+module%demo_hoist Bar = Foo
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: module%demo_string must be bound to a [struct ... end] expression
+|}]
+
+module%demo_hoist Bar = Make (Foo)
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: module%demo_string must be bound to a [struct ... end] expression
+|}]
+
+let%demo_hoist func a b = a + b
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: let%demo_hoist cannot be used with functions. If you want to extract the source code of a function, please wrap it in a module.
+|}]
+
+let () =
+  let%demo_hoist func2 c d = c - d in
+  ()
+;;
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: let%demo_hoist cannot be used with functions. If you want to extract the source code of a function, please wrap it in a module.
+|}]
+
+let%demo_hoist foo = "bar"
+and baz () = "buzz"
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: let%demo_hoist cannot be used with functions. If you want to extract the source code of a function, please wrap it in a module.
+|}]
+
+let () =
+  let%demo_hoist steak = "meat"
+  and potatoes () = "vegetable" in
+  ()
+;;
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: let%demo_hoist cannot be used with functions. If you want to extract the source code of a function, please wrap it in a module.
+|}]
