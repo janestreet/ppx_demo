@@ -26,8 +26,8 @@ module Hoist_as = struct
         }
 
   let create ~name:hoisted_name ~demo_string =
-    (* If the name is capitalized, we will hoist the demo string within a module.
-       If not, we will hoist it as a value *)
+    (* If the name is capitalized, we will hoist the demo string within a module. If not,
+       we will hoist it as a value *)
     match Name.Hoisted.is_capitalized hoisted_name with
     | true -> Module { demo_string; hoisted_name }
     | false -> Value { demo_string; hoisted_name }
@@ -102,8 +102,9 @@ let create_hoisted_module ~loc =
   [%stri
     open struct
       (* This warning is at the `open struct` level, so it should not affect the warnings
-     thrown by the values within the module itself. We've also added error throwing that's
-     a bit more specific within the lazy sheets code, so this should be safe to do *)
+         thrown by the values within the module itself. We've also added error throwing
+         that's a bit more specific within the lazy sheets code, so this should be safe to
+         do *)
       [@@@ocaml.warning "-60"]
 
       [%%i module_]
