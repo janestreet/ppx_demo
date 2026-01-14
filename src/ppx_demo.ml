@@ -14,7 +14,7 @@ let ghosted_extension_loc ctxt =
 let get_regex kind =
   let name =
     match kind with
-    (* Match either %demo or %demo_hoist depending on the [kind]. Allow for leading and
+    (*=Match either %demo or %demo_hoist depending on the [kind]. Allow for leading and
        trailing spaces. We also allow for [%%demo_hoist *)
     | `Hoisted -> {%string|%?%{hoisted_ppx_name}|}
     | `Unhoisted -> ppx_name
@@ -31,8 +31,8 @@ let match_regex ~loc ~kind file_contents =
   let regex = get_regex kind in
   let () =
     (* Disallow [%demo_hoist ... [@name ""]] syntax. This is because the attribute is
-       actually attached to the final expression in the block, when we want it to be attached
-       to the entire thing.
+       actually attached to the final expression in the block, when we want it to be
+       attached to the entire thing.
 
        This will not always raise when the user uses the [%demo_hoist ...] syntax. It will
        only raise if the codepath has entered the fallthrough branch
@@ -111,8 +111,8 @@ let get_name_from_attributes : loc:location -> attributes -> Name.Hoisted.t opti
 ;;
 
 module Demo = struct
-  (* This GADT is used to ensure the input and return type of the [expand] function.
-     It can be removed if necessary
+  (* This GADT is used to ensure the input and return type of the [expand] function. It
+     can be removed if necessary
   *)
   type 'a t =
     | Expression : expression -> expression t
@@ -142,12 +142,12 @@ module Demo = struct
           ]
       in
       (* {[
-     struct
-       (* original structure *)
+           struct
+             (* original structure *)
 
-       let ppx_demo_string = (* demo string of structure *)
-     end
-     ]}
+             let ppx_demo_string = (* demo string of structure *)
+           end
+         ]}
       *)
       pmod_structure ~loc (structure @ [ demo ])
   ;;
@@ -172,8 +172,8 @@ module Demo = struct
 end
 
 module Demo_hoist = struct
-  (* This GADT is used to ensure the input and return type of the [expand] function.
-     It can be removed if necessary
+  (* This GADT is used to ensure the input and return type of the [expand] function. It
+     can be removed if necessary
   *)
   type 'a t =
     | Expression : expression -> expression t
@@ -223,7 +223,7 @@ module Demo_hoist = struct
       | _ -> raise_no_binding_error ~loc:pvb_loc
   ;;
 
-  (* We shouldn't allow for extracting the code from function expressions. This is because
+  (*=We shouldn't allow for extracting the code from function expressions. This is because
      the text that is extracted is a bit unexpected
 
      Ex:
@@ -428,10 +428,10 @@ module Demo_hoist = struct
         Ast_pattern.(pstr __)
         (fun ~ctxt _structure ->
           (* Sadly this syntax isn't supported due to the fact that module expressions do
-             not receive the attribute that is attached to the [Pstr_module] node that wraps the
-             [Pmod_extension] node. Because of this, it's not really possible to ensure that
-             the module expression is bound to a name or has a name attribute without some
-             weird regex matching *)
+             not receive the attribute that is attached to the [Pstr_module] node that
+             wraps the [Pmod_extension] node. Because of this, it's not really possible to
+             ensure that the module expression is bound to a name or has a name attribute
+             without some weird regex matching *)
           let loc = ghosted_extension_loc ctxt in
           Location.raise_errorf
             ~loc

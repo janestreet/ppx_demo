@@ -21,11 +21,7 @@ let name_of_string ~loc name =
 
 module Hoisted = struct
   include
-    String_id.Make
-      (struct
-        let module_name = "Name.Hoisted"
-      end)
-      ()
+    (val String_id.make ~module_name:"Name.Hoisted" ~include_default_validation:true ())
 
   let of_string' = of_string
   let of_string ~loc value = name_of_string ~loc value |> of_string'
@@ -38,11 +34,7 @@ end
 
 module Original = struct
   include
-    String_id.Make
-      (struct
-        let module_name = "Name.Original"
-      end)
-      ()
+    (val String_id.make ~module_name:"Name.Original" ~include_default_validation:true ())
 
   let of_string ~loc value = name_of_string ~loc value |> of_string
   let to_hoisted value = to_string value |> Hoisted.of_string'
