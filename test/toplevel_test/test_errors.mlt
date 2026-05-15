@@ -166,3 +166,14 @@ let () =
 Line _, characters _-_:
 Error: let%demo_hoist cannot be used with functions. If you want to extract the source code of a function, please wrap it in a module.
 |}]
+
+let () =
+  let (_ : (string * string) * int) = ([%demo "meat"] [@test]), 3 in
+  ()
+;;
+
+[%%expect
+  {|
+Line _, characters _-_:
+Error: Unable to match regex to file contents. This might be an error within ppx_demo, please contact the maintainers.
+|}]
