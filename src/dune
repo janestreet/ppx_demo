@@ -1,7 +1,7 @@
 (library
  (name ppx_demo)
  (public_name ppx_demo)
- (kind ppx_deriver)
+ (kind ppx_rewriter)
  (libraries core dedent ppx_module_timer.helpers ppxlib ppxlib_jane re2)
  (preprocess
   (pps ppxlib.metaquot ppx_jane)))
