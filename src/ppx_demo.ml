@@ -206,11 +206,11 @@ module Demo_hoist = struct
       match pvb_pat.ppat_desc with
       | Ppat_var { txt = var_name; loc = ppat_loc; _ }
       | Ppat_constraint
-          ({ ppat_desc = Ppat_var { txt = var_name; loc = ppat_loc; _ }; _ }, _) ->
+          ({ ppat_desc = Ppat_var { txt = var_name; loc = ppat_loc; _ }; _ }, _, _) ->
         let original_name = Name.Original.of_string ~loc:ppat_loc var_name in
         let hoisted_name = get_name_from_attributes ~loc:pvb_loc pvb_attributes in
         Name.Original_and_hoisted (original_name, hoisted_name)
-      | Ppat_any | Ppat_constraint ({ ppat_desc = Ppat_any; _ }, _) ->
+      | Ppat_any | Ppat_constraint ({ ppat_desc = Ppat_any; _ }, _, _) ->
         let hoisted_name = get_name_from_attributes ~loc:pvb_loc pvb_attributes in
         (match hoisted_name with
          | None -> raise_ignored_error ~loc:pvb_loc
